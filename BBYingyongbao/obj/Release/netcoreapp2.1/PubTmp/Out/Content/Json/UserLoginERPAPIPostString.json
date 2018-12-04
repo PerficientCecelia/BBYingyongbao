@@ -1,0 +1,19 @@
+﻿{
+  "ChangeDDId": {
+    "SavingTarget": "savemanyvalue",
+    "TargetTable": "OLAPAgentDim",
+    "TargetColumn": "Support14",
+    "MainID": "OLAPKey",
+    "TableID": "",
+    "ReturnType": "Json",
+    "rand": ""
+  },
+  "IfExistUser": {
+    "SearchInput": "getmanyvalue",
+    "TargetTable": "OLAPAgentDim",
+    "TargetColumn": "OLAPKey,Support14,MainDemoName,SourceKey,FatherKey,FatherKeyValue,PassKey,IfCloseKey,Chose2Key,Chose2KeyValue",
+    "ReturnType": "Json",
+    "WhereStr": "IfDel=0 and IfLeaf=1 and MainDemoName='${Username}' and PassKey='${Password}'",
+    "rand": ""
+  }
+}

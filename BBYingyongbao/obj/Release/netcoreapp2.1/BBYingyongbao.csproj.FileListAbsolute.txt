@@ -1,0 +1,14 @@
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\bin\Release\netcoreapp2.1\BBYingyongbao.deps.json
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\bin\Release\netcoreapp2.1\BBYingyongbao.runtimeconfig.json
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\bin\Release\netcoreapp2.1\BBYingyongbao.runtimeconfig.dev.json
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\bin\Release\netcoreapp2.1\BBYingyongbao.dll
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\bin\Release\netcoreapp2.1\BBYingyongbao.pdb
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.csproj.CoreCompileInputs.cache
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.RazorAssemblyInfo.cache
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.RazorAssemblyInfo.cs
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.AssemblyInfoInputs.cache
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.AssemblyInfo.cs
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.RazorTargetAssemblyInfo.cache
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.dll
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.pdb
+C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Release\netcoreapp2.1\BBYingyongbao.csprojAssemblyReference.cache

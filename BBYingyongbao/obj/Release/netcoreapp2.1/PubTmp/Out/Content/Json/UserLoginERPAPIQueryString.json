@@ -1,0 +1,13 @@
+﻿{
+  "SearchInput": "getmanyvalue",
+  "TargetTable": "OLAPAgentDim",
+  "TargetColumn": "OLAPKey,MainDemoName,SourceKey,FatherKey,FatherKeyValue,PassKey,Support14,IfCloseKey,Chose2Key,Chose2KeyValue",
+  "UserID": "",
+  "pageIndex": "",
+  "pageSize": "",
+  "ReturnType": "Json",
+  "WhereStr": "IfDel=0 and IfLeaf=1 and Support14='${DDUserId}'",
+  "rand": "",
+  "SelectColumn": "",
+  "SearchValue": ""
+}
