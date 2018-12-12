@@ -1,0 +1,9 @@
+
+----------------------header--------------------------
+2018-12-05 22:22:52,741 [1] INFO  BBYingyongbao.Startup - Application StartUp
+
+----------------------header--------------------------
+2018-12-05 22:29:00,548 [1] INFO  BBYingyongbao.Startup - Application StartUp
+
+----------------------header--------------------------
+2018-12-05 22:55:30,499 [1] INFO  BBYingyongbao.Startup - Application StartUp

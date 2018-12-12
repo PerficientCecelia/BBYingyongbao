@@ -20,19 +20,19 @@ namespace BBYingyongbao.Models
 
         public ERPResponseGeneral serializeRequestDataResponse(JObject obj) {
             return new ERPResponseGeneral() {
-                statusCode = obj["statusCode"].ToString(),
-                errorMessage=obj["errorMessage"].ToString(),
-                totalCount=obj["totalCount"].ToString(),
-                totalPage=obj["totalPage"].ToString()
+                statusCode = obj["statusCode"]!=null?obj["statusCode"].ToString():"",
+                errorMessage= obj["errorMessage"]!=null?obj["errorMessage"].ToString():"",
+                totalCount= obj["totalCount"]!=null?obj["totalCount"].ToString():"",
+                totalPage= obj["totalPage"]!=null?obj["totalPage"].ToString():""
             };
         }
 
         public ERPResponseGeneral serializeSaveDataResponse(JObject obj) {
             return new ERPResponseGeneral()
             {
-                statusCode = obj["statusCode"].ToString(),
-                errorMessage = obj["errorMessage"].ToString(),
-                totalCount = obj["returnkey"].ToString()
+                statusCode = obj["statusCode"]!=null?obj["statusCode"].ToString():"",
+                errorMessage = obj["errorMessage"]!=null? obj["errorMessage"].ToString():"",
+                ReturnKey = obj["returnkey"]!=null? obj["returnkey"].ToString():""
             };
         }
 

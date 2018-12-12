@@ -15,6 +15,7 @@ namespace BBYingyongbao.Models
         public string DepartmentId { get; set; }
         public string DepartmentName { get; set; }
         public string IfClosed { get; set; }
+        public string returnStyle { get; set; }
 
         public void ToUserInfoViewModel(UserInfoViewModel model,JToken obj) {
             model.ERPUserID = obj["OLAPKey"].ToString();

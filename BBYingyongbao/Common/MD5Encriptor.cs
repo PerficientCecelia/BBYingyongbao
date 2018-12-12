@@ -11,24 +11,32 @@ namespace BBYingyongbao.Common
     public static class MD5Encriptor
     {
         public static string Encriptor(string input) {
-            using (var md5 = MD5.Create())
+            try
             {
-                MD5 mdk = new MD5CryptoServiceProvider();     
-                byte[] bytIn = Encoding.UTF8.GetBytes(input.Trim());
-           
-                byte[] iv = { 8, 7, 6, 5, 4, 3, 2, 1 };  
-                byte[] key = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };//定义密钥     
+                using (var md5 = MD5.Create())
+                {
+                    MD5 mdk = new MD5CryptoServiceProvider();
+                    byte[] bytIn = Encoding.UTF8.GetBytes(input.Trim());
 
-                SymmetricAlgorithm cryptService = new TripleDESCryptoServiceProvider();
-                cryptService.Key = key;
-                cryptService.IV = iv;
-                ICryptoTransform encrypto = cryptService.CreateEncryptor();
- 
-                System.IO.MemoryStream ms = new System.IO.MemoryStream();
-                CryptoStream cs = new CryptoStream(ms, encrypto, CryptoStreamMode.Write);
-                cs.Write(bytIn, 0, bytIn.Length);
-                cs.FlushFinalBlock();
-                return System.Convert.ToBase64String(ms.ToArray());
+                    byte[] iv = { 8, 7, 6, 5, 4, 3, 2, 1 };
+                    byte[] key = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };//定义密钥     
+
+                    SymmetricAlgorithm cryptService = new TripleDESCryptoServiceProvider();
+                    cryptService.Key = key;
+                    cryptService.IV = iv;
+                    ICryptoTransform encrypto = cryptService.CreateEncryptor();
+
+                    System.IO.MemoryStream ms = new System.IO.MemoryStream();
+                    CryptoStream cs = new CryptoStream(ms, encrypto, CryptoStreamMode.Write);
+                    cs.Write(bytIn, 0, bytIn.Length);
+                    cs.FlushFinalBlock();
+                    return System.Convert.ToBase64String(ms.ToArray());
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.ErrorInfo(ex.GetType(),ex.Message+"----the password encryptor has problem,the pass word is: "+input);
+                throw;
             }
         }
 

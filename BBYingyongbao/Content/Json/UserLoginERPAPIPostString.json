@@ -15,5 +15,14 @@
     "ReturnType": "Json",
     "WhereStr": "IfDel=0 and IfLeaf=1 and MainDemoName='${Username}' and PassKey='${Password}'",
     "rand": ""
+  },
+  "ClearDDId": {
+    "SavingTarget": "savemanyvalue",
+    "TargetTable": "OLAPAgentDim",
+    "TargetColumn": "Support14",
+    "MainID": "Support14",
+    "TableID": "",
+    "ReturnType": "Json",
+    "rand": ""
   }
 }

@@ -1,13 +1,19 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using BBYingyongbao.Common;
+using log4net;
+using log4net.Config;
+using log4net.Repository;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 namespace BBYingyongbao
 {
     public class Startup
     {
+        public static ILoggerRepository repository { get; set; }
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -16,6 +22,8 @@ namespace BBYingyongbao
                         .AddJsonFile($"appsettings.{env.EnvironmentName}.json",optional:true)
                         .AddEnvironmentVariables();
             Configuration = builder.Build();
+            repository = LogManager.CreateRepository("NETCoreRepository");
+            XmlConfigurator.Configure(repository, new FileInfo("log4net.config"));
         }
 
         public IConfiguration Configuration { get; }
@@ -41,6 +49,7 @@ namespace BBYingyongbao
 
             app.UseHttpsRedirection();
             app.UseMvc();
+            LoggerHelper.LogInfo(this.GetType(),"Application StartUp");
         }
     }
 }

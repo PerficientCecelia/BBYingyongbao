@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using BBYingyongbao.Common;
 using BBYingyongbao.Models;
@@ -15,8 +16,57 @@ namespace BBYingyongbao.Controllers
     {
         [HttpGet]
         [Route("test")]
-        public JSendResponse<string> test() {
+        public JSendResponse<string> test()
+        {
             return JSendResponse<string>.CreateSuccess("successful get");
+        }
+
+        [HttpPost]
+        [Route("logout")]
+        public JSendResponse<ERPResponseGeneral> logout([FromBody] DDUserModel user)
+        {
+            using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx")))
+            {
+                var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLogoutAPIPostString.json");
+                ERPResponseGeneral unbindResponse = ChangeUserIDResponse(null, ParameterDictionary, user, client, "Logout");
+                if (unbindResponse != null && "1".Equals(unbindResponse.statusCode)) {
+                    return JSendResponse<ERPResponseGeneral>.CreateSuccess(unbindResponse);
+                }
+                LoggerHelper.LogInfo(this.GetType(), "----user logout is not returning status code 1,the status code is: " + unbindResponse.statusCode);
+                return JSendResponse<ERPResponseGeneral>.CreateFail(unbindResponse);
+            }            
+        }
+
+        [HttpPost]
+        public JSendResponse<UserInfoViewModel> Post([FromBody] DDUserModel user)
+        {
+            try
+            {
+                var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLoginERPAPIPostString.json");
+                UserInfoViewModel userModel = GetUserByUserIdAndPassword(user, ParameterDictionary);
+
+                if (userModel != null && "1".Equals(userModel.returnStyle))
+                {
+                    ERPResponseGeneral info = ChangeUserDDId(userModel, ParameterDictionary, user);
+                    if (info != null && "1".Equals(info.statusCode))
+                    {
+                        return JSendResponse<UserInfoViewModel>.CreateSuccess(userModel);
+                    }
+                    else
+                    {
+                        LoggerHelper.LogInfo(this.GetType(), "ChangeUserDDId is not returning status code 1,the user info:" + user.Username);
+                        return JSendResponse<UserInfoViewModel>.CreateFail(info);
+                    }
+                }
+
+                LoggerHelper.LogInfo(this.GetType(), "GetUserByUserIdAndPassword is not returning correct status code,the user info:" + user.Username);
+                return JSendResponse<UserInfoViewModel>.CreateFail(userModel);
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----Exception when LoginController post() is running", ex);
+                return JSendResponse<UserInfoViewModel>.CreateError(ex.Message);
+            }
         }
 
         [HttpGet]
@@ -33,130 +83,250 @@ namespace BBYingyongbao.Controllers
 
                     HttpResponseMessage response = client.PostAsync("http://erptest.bb-pco.com/KPIGetData/DimData.aspx", content).Result;
                     var result = response.Content.ReadAsStringAsync().Result;
-
-                    var jobj = JObject.Parse(result);
-                    ERPResponseGeneral generalInfo = new ERPResponseGeneral().serializeRequestDataResponse(jobj);
+                    JObject jobj;
+                    ERPResponseGeneral generalInfo;
+                    try
+                    {
+                        jobj = JObject.Parse(result);
+                        generalInfo = new ERPResponseGeneral().serializeRequestDataResponse(jobj);
+                    }
+                    catch (Exception ex)
+                    {
+                        string parameter = string.Join(";", requestParameterDictionary.Select(x => x.Key + ":" + x.Value).ToArray());
+                        LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----the client is returning unexpected result,the parameter is: " + parameter + "; the result is: " + result);
+                        throw;
+                    }
 
                     if ("1".Equals(generalInfo.statusCode))
                     {
                         UserInfoViewModel model = new UserInfoViewModel();
                         model.ToUserInfoViewModel(model, jobj["data"][0]);
+                        model.returnStyle = "1";
                         return JSendResponse<UserInfoViewModel>.CreateSuccess(model);
                     }
+
+                    LoggerHelper.LogInfo(this.GetType(), "----get usermodel by DDUserId is not returning status code 1,the status code is: " + generalInfo.statusCode);
                     return JSendResponse<UserInfoViewModel>.CreateFail(generalInfo);
                 }
                 catch (Exception ex)
                 {
+                    LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "---- Exception when Login Controller get is running");
                     return JSendResponse<UserInfoViewModel>.CreateError(ex.Message);
                 }
             }
+        }
 
+        #region private section
+        private void ProcessClearDDIDParameter(Dictionary<string, string> list, string ChangedDDUserId)
+        {
+            try
+            {
+                list["TableID"] = ChangedDDUserId;
+                list["rand"] = DateTime.Now.ToString("f");
+                list.Add("Support14", "");
+            }
+            catch (Exception ex)
+            {
+                string parameter = string.Join(";", list.Select(x => x.Key + "=" + x.Value).ToArray());
+                LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----error when process ProcessClearDDIDParameter,the parameter is: " + parameter);
+                throw;
+            }
         }
 
         private void ProcessChangeDDIdParameter(Dictionary<string, string> list, string ERPUserId, string ChangedDDUserId)
         {
-            list["TableID"] = ERPUserId;
-            list["rand"] = DateTime.Now.ToString("f");
-            list.Add("Support14", ChangedDDUserId);
+            try
+            {
+                list["TableID"] = ERPUserId;
+                list["rand"] = DateTime.Now.ToString("f");
+                list.Add("Support14", ChangedDDUserId);
+            }
+            catch (Exception ex)
+            {
+                string parameter = string.Join(";", list.Select(x => x.Key + "=" + x.Value).ToArray());
+                LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----error when process ProcessChangeDDIdParameter,the parameter is:" + parameter);
+                throw;
+            }
         }
+
         private void ProcessLoginRequestParameter(Dictionary<string, string> list, string userId)
         {
-            list["UserID"] = userId;
-            list["rand"] = DateTime.Now.ToString("f");
-            list["WhereStr"] = list["WhereStr"].Replace("${DDUserId}", userId);
+            try
+            {
+                list["UserID"] = userId;
+                list["rand"] = DateTime.Now.ToString("f");
+                list["WhereStr"] = list["WhereStr"].Replace("${DDUserId}", userId);
+            }
+            catch (Exception ex)
+            {
+                string parameter = string.Join(";", list.Select(x => x.Key + "=" + x.Value).ToArray());
+                LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----error when process ProcessLoginRequestParameter, the parameter is:" + parameter);
+                throw;
+            }
         }
 
         private void processIfUserExistParameter(Dictionary<string, string> param, DDUserModel user)
         {
-            string password = MD5Encriptor.Encriptor(user.Password);
-            param["WhereStr"] = param["WhereStr"].Replace("${Username}", user.Username.Trim()).Replace("${Password}", password);
-            param["rand"]= DateTime.Now.ToString("f");
-        }
-
-        private ERPResponseGeneral ChangeUserDDId(UserInfoViewModel model, JObject ParameterDictionary, DDUserModel user)
-        {
-            if (!model.DDUserID.Equals(user.DDUserId))
-            {
-                using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx")))
-                {
-                    string changeDDId = ParameterDictionary["ChangeDDId"].ToString(Formatting.None);
-                    var paramterChangeDDId = JsonConvert.DeserializeObject<Dictionary<string, string>>(changeDDId);
-                    ProcessChangeDDIdParameter(paramterChangeDDId, model.ERPUserID, user.DDUserId);
-                    //if (!string.IsNullOrEmpty(DDUserId1))
-                    HttpContent content = new FormUrlEncodedContent(paramterChangeDDId);
-                    HttpResponseMessage saveDataResponse = client.PostAsync("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx", content).Result;
-                    var saveDataObj = JObject.Parse(saveDataResponse.Content.ReadAsStringAsync().Result);
-                    var saveDataResult = new ERPResponseGeneral().serializeSaveDataResponse(saveDataObj);
-                    return saveDataResult;
-                }
-            }
-            else
-            {
-                return null;
-            }
-
-        }
-        private UserInfoViewModel GetUserByUserIdAndPassword(DDUserModel user, JObject ParameterDictionary)
-        {
             try
             {
-                using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimData.aspx")))
-                {
-                    //查询if 存在符合条件的username password 的人 如果没有查询到，返回username password 错误，查询到，返回user id, dd user id, 则更改dd user id对应的用户信息
-                    //查询user id 对应的人，更改他的dd user id /如果上一个返回的dd id 为 空，则返回信息，成功绑定dd user id, 若非空，返回信息，成功更改dd user id 
-                    string ifExistUser = ParameterDictionary["IfExistUser"].ToString(Formatting.None);
-                    var paramterIfExistUser = JsonConvert.DeserializeObject<Dictionary<string, string>>(ifExistUser);
-                    processIfUserExistParameter(paramterIfExistUser, user);
-                    HttpContent content = new FormUrlEncodedContent(paramterIfExistUser);
-                    HttpResponseMessage response = client.PostAsync("http://erptest.bb-pco.com/KPIGetData/DimData.aspx", content).Result;
-                    var jObj = JObject.Parse(response.Content.ReadAsStringAsync().Result);
-                    var result = new ERPResponseGeneral().serializeRequestDataResponse(jObj);
-                    if ("1".Equals(result.statusCode))
-                    {
-                        UserInfoViewModel model = new UserInfoViewModel();
-                        model.ToUserInfoViewModel(model, jObj["data"][0]);
-                        return model;
-                    }
-
-                    return null;
-                }
+                string password = MD5Encriptor.Encriptor(user.Password);
+                param["WhereStr"] = param["WhereStr"].Replace("${Username}", user.Username.Trim()).Replace("${Password}", password);
+                param["rand"] = DateTime.Now.ToString("f");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                string parameter = string.Join(";", param.Select(x => x.Key + "=" + x.Value).ToArray());
+                LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----error when process processIfUserExistParameter, the parameter is: " + parameter);
                 throw;
             }
 
         }
 
-        [HttpPost]
-        public JSendResponse<UserInfoViewModel> Post([FromBody] DDUserModel user)
+        private void ProcessLogoutParameter(Dictionary<string, string> list, string ERPUserId, string oldDDUserId)
         {
             try
             {
-                var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLoginERPAPIPostString.json");
-                UserInfoViewModel userModel = GetUserByUserIdAndPassword(user, ParameterDictionary);
-                if (userModel != null)
-                {
-                    ERPResponseGeneral info = ChangeUserDDId(userModel, ParameterDictionary, user);
-                    if ("1".Equals(info.statusCode))
-                    {
-                        return JSendResponse<UserInfoViewModel>.CreateSuccess(userModel);
-                    }
-                    else
-                    {
-                        return JSendResponse<UserInfoViewModel>.CreateFail(info);
-                    }
-                }
-                else
-                {
-                    return JSendResponse<UserInfoViewModel>.CreateError("用户名或密码找不到哦！");
-                }
+                list["TableID"] = ERPUserId;
+                list["rand"] = DateTime.Now.ToString("f");
+                list["WhereStr"] = list["WhereStr"].Replace("${OldDDUserId}", oldDDUserId);
+                list.Add("Support14", "");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return JSendResponse<UserInfoViewModel>.CreateError("exception during the request");
+                string parameter = string.Join(";", list.Select(x => x.Key + "=" + x.Value).ToArray());
+                LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----error when process ProcessLogoutParameter,the parameter is:" + parameter);
+                throw;
             }
         }
 
+        private ERPResponseGeneral ChangeUserIDResponse(UserInfoViewModel model, JObject ParameterDictionary, DDUserModel user, HttpClient client, string parameterId)
+        {
+            try
+            {
+                string paramterString = ParameterDictionary[parameterId].ToString(Formatting.None);
+                var paramterDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(paramterString);
+                switch (parameterId)
+                {
+                    case "ChangeDDId":
+                        ProcessChangeDDIdParameter(paramterDictionary, model.ERPUserID, user.DDUserId);
+                        break;
+                    case "ClearDDId":
+                        ProcessClearDDIDParameter(paramterDictionary, user.DDUserId);
+                        break;
+                    case "Logout":
+                        ProcessLogoutParameter(paramterDictionary, user.ERPUserId, user.DDUserId);
+                        break;
+                }
+
+                HttpContent content = new FormUrlEncodedContent(paramterDictionary);
+                HttpResponseMessage response = client.PostAsync("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx", content).Result;
+
+                string stringResult = response.Content.ReadAsStringAsync().Result;
+
+                JObject obj;
+                ERPResponseGeneral generalRes;
+
+                try
+                {
+                    obj = JObject.Parse(stringResult);
+                    generalRes = new ERPResponseGeneral().serializeSaveDataResponse(obj);
+                }
+                catch (Exception ex)
+                {
+                    string parameter = string.Join(";", paramterDictionary.Select(x => x.Key + ":" + x.Value).ToArray());
+                    LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----the client is returning unexpected result,the parameter is: " + parameter + "the result is: " + stringResult);
+                    throw;
+                }
+
+                if ("1".Equals(generalRes.statusCode))
+                {
+                    return generalRes;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.ErrorInfo(this.GetType(), "Exception when ChangeUserIDResponse is running:" + parameterId, ex);
+                throw;
+            }
+        }
+
+        private ERPResponseGeneral ChangeUserDDId(UserInfoViewModel model, JObject ParameterDictionary, DDUserModel user)
+        {
+            try
+            {
+                using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx")))
+                {
+                    ERPResponseGeneral clearIdResponse = ChangeUserIDResponse(model, ParameterDictionary, user, client, "ClearDDId");
+                    if (clearIdResponse != null && "1".Equals(clearIdResponse.statusCode))
+                    {
+                        ERPResponseGeneral changeIdResponse = ChangeUserIDResponse(model, ParameterDictionary, user, client, "ChangeDDId");
+                        return changeIdResponse;
+                    }
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.ErrorInfo(this.GetType(), "Exception when ChangeUserDDId is running", ex);
+                throw;
+            }
+        }
+
+        private UserInfoViewModel GetUserByUserIdAndPassword(DDUserModel user, JObject ParameterDictionary)
+        {
+            using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimData.aspx")))
+            {
+                Dictionary<string, string> paramterIfExistUser = new Dictionary<string, string>();
+                try
+                {
+                    string ifExistUser = ParameterDictionary["IfExistUser"].ToString(Formatting.None);
+                    paramterIfExistUser = JsonConvert.DeserializeObject<Dictionary<string, string>>(ifExistUser);
+                    processIfUserExistParameter(paramterIfExistUser, user);
+
+                    HttpContent content = new FormUrlEncodedContent(paramterIfExistUser);
+                    HttpResponseMessage response = client.PostAsync("http://erptest.bb-pco.com/KPIGetData/DimData.aspx", content).Result;
+
+                    var stringResult = response.Content.ReadAsStringAsync().Result;
+                    JObject jObj;
+                    ERPResponseGeneral result;
+
+                    try
+                    {
+                        jObj = JObject.Parse(stringResult);
+                        result = new ERPResponseGeneral().serializeRequestDataResponse(jObj);
+                    }
+                    catch (Exception ex)
+                    {
+                        string parameter = string.Join(";", paramterIfExistUser.Select(x => x.Key + ":" + x.Value).ToArray());
+                        LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----the client is returning unexpected result,the parameter is: " + parameter + "the result is: " + stringResult);
+                        throw;
+                    }
+
+                    UserInfoViewModel model = new UserInfoViewModel();
+                    if ("1".Equals(result.statusCode))
+                    {
+                        model.ToUserInfoViewModel(model, jObj["data"][0]);
+                        model.returnStyle = "1";
+                    }
+                    else
+                    {
+                        model.returnStyle = result.statusCode + ":" + result.errorMessage;
+                        LoggerHelper.LogInfo(this.GetType(), "----get userinfo by user name and password is not returning status code 1,the status code is: " + model.returnStyle + "; the returning result is: " + stringResult);
+                    }
+                    return model;
+                }
+                catch (Exception ex)
+                {
+                    string parameter = string.Join(";", paramterIfExistUser.Select(x => x.Key + "=" + x.Value).ToArray());
+                    LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----Exception when GetUserByUserIdAndPassword() is running, the request parameter is: " + parameter, ex);
+                    throw;
+                }
+            }
+        }
+        #endregion
     }
 }

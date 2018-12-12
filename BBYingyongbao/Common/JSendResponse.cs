@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BBYingyongbao.Common
 {
@@ -57,6 +54,7 @@ namespace BBYingyongbao.Common
             JSendResponse<T> response = new JSendResponse<T>();
             response.Status = JSendResponseStatus.Success;
             response.Data = data;
+            response.Code = (int)JSendResponseStatus.Success;
             return response;
         }
     }

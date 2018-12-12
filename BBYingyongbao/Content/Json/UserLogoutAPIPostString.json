@@ -1,0 +1,12 @@
+{
+  "Logout": {
+    "SavingTarget": "savemanyvalue",
+    "TargetTable": "OLAPAgentDim",
+    "TargetColumn": "Support14",
+    "MainID": "OLAPKey",
+    "TableID": "",
+    "ReturnType": "Json",
+    "WhereStr": "IfDel=0 and IfLeaf=1 and Support14='${OldDDUserId}'",
+    "rand": ""
+  }
+}

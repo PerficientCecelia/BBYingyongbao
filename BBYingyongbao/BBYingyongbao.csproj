@@ -5,10 +5,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="log4net.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Logs\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="log4net.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
