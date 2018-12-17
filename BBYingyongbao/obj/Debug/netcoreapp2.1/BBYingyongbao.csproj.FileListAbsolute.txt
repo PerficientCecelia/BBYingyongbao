@@ -11,4 +11,3 @@ C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Debug\netcoreap
 C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Debug\netcoreapp2.1\BBYingyongbao.RazorTargetAssemblyInfo.cache
 C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Debug\netcoreapp2.1\BBYingyongbao.dll
 C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Debug\netcoreapp2.1\BBYingyongbao.pdb
-C:\Users\cecelia.du\source\repos\BBYingyongbao\BBYingyongbao\obj\Debug\netcoreapp2.1\BBYingyongbao.csprojAssemblyReference.cache

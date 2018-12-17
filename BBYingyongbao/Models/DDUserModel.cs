@@ -12,5 +12,9 @@ namespace BBYingyongbao.Models
         public string Username { get; set; }
         public string Password { get; set; }
         public string ERPUserId { get; set; }
+
+        public string ToDictionaryString(DDUserModel model) {
+            return "DDUserId: " + model.DDUserId + " Username:" + model.Username + " Password:" + model.Password + " ERPUserId:" + model.ERPUserId;
+        }
     }
 }

@@ -18,23 +18,40 @@ namespace BBYingyongbao.Controllers
         [Route("test")]
         public JSendResponse<string> test()
         {
-            return JSendResponse<string>.CreateSuccess("successful get");
+            DDUserModel user = new DDUserModel();
+            user.Username = "张三";
+            user.Password = "12345678";
+            user.DDUserId = "101117491426576728";
+            user.ERPUserId = "3805";
+            return JSendResponse<string>.CreateSuccess(user.ToDictionaryString(user));
         }
 
         [HttpPost]
         [Route("logout")]
         public JSendResponse<ERPResponseGeneral> logout([FromBody] DDUserModel user)
         {
-            using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx")))
+            if (!ValidateLogoutRequestParameter(user)) {
+                LoggerHelper.LogInfo(this.GetType(), "----the request parameter is not passing proper parameter: " +user.ToDictionaryString(user));
+                return JSendResponse<ERPResponseGeneral>.CreateFail(user);
+            }
+
+            var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLogoutAPIPostString.json");
+            UserInfoViewModel userModel = GetUserByCondition(user, ParameterDictionary);
+            if (userModel != null && "1".Equals(userModel.returnStyle))
             {
-                var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLogoutAPIPostString.json");
-                ERPResponseGeneral unbindResponse = ChangeUserIDResponse(null, ParameterDictionary, user, client, "Logout");
-                if (unbindResponse != null && "1".Equals(unbindResponse.statusCode)) {
+                ERPResponseGeneral unbindResponse = UnbindUserFromDD(user, ParameterDictionary);
+                if (unbindResponse != null && "1".Equals(unbindResponse.statusCode))
+                {
                     return JSendResponse<ERPResponseGeneral>.CreateSuccess(unbindResponse);
                 }
-                LoggerHelper.LogInfo(this.GetType(), "----user logout is not returning status code 1,the status code is: " + unbindResponse.statusCode);
-                return JSendResponse<ERPResponseGeneral>.CreateFail(unbindResponse);
-            }            
+                else
+                {
+                    LoggerHelper.LogInfo(this.GetType(), "----UnbindUserFromDD is not returning status code 1,the status code is: " + unbindResponse.statusCode);
+                    return JSendResponse<ERPResponseGeneral>.CreateFail(unbindResponse);
+                }
+            }
+            LoggerHelper.LogInfo(this.GetType(), "----GetUserByCondition is not returning status code 1,the status code is: " + userModel.returnStyle);
+            return JSendResponse<ERPResponseGeneral>.CreateFail(userModel);
         }
 
         [HttpPost]
@@ -42,8 +59,12 @@ namespace BBYingyongbao.Controllers
         {
             try
             {
+                if (!ValidateLoginByUsernameAndPassword(user)) {
+                    LoggerHelper.LogInfo(this.GetType(), "----the request parameter is not passing proper parameter: " + user.ToDictionaryString(user));
+                    return JSendResponse<UserInfoViewModel>.CreateFail(user);
+                }
                 var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLoginERPAPIPostString.json");
-                UserInfoViewModel userModel = GetUserByUserIdAndPassword(user, ParameterDictionary);
+                UserInfoViewModel userModel = GetUserByCondition(user, ParameterDictionary);
 
                 if (userModel != null && "1".Equals(userModel.returnStyle))
                 {
@@ -72,6 +93,10 @@ namespace BBYingyongbao.Controllers
         [HttpGet]
         public JSendResponse<UserInfoViewModel> Get(string DDUserId)
         {
+            if (string.IsNullOrEmpty(DDUserId)) {
+                LoggerHelper.LogInfo(this.GetType(), "----the request parameter is not passing proper parameter: DDUserId:" +DDUserId );
+                return JSendResponse<UserInfoViewModel>.CreateFail("DDUserId:" + DDUserId);
+            }
             using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimData.aspx")))
             {
                 try
@@ -117,6 +142,27 @@ namespace BBYingyongbao.Controllers
         }
 
         #region private section
+        private bool ValidateLogoutRequestParameter(DDUserModel user) {
+            if (string.IsNullOrEmpty(user.DDUserId) || string.IsNullOrEmpty(user.ERPUserId))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateGetUserByDDUserID(DDUserModel user) {
+            if (string.IsNullOrEmpty(user.DDUserId)) {
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateLoginByUsernameAndPassword(DDUserModel user) {
+            if (string.IsNullOrEmpty(user.DDUserId)||string.IsNullOrEmpty(user.Username)||string.IsNullOrEmpty(user.Password)) {
+                return false;
+            }
+            return true;
+        }
         private void ProcessClearDDIDParameter(Dictionary<string, string> list, string ChangedDDUserId)
         {
             try
@@ -130,6 +176,19 @@ namespace BBYingyongbao.Controllers
                 string parameter = string.Join(";", list.Select(x => x.Key + "=" + x.Value).ToArray());
                 LoggerHelper.ErrorInfo(ex.GetType(), ex.Message + "----error when process ProcessClearDDIDParameter,the parameter is: " + parameter);
                 throw;
+            }
+        }
+
+        private ERPResponseGeneral UnbindUserFromDD(DDUserModel user, JObject ParameterDictionary)
+        {
+            using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimSavingData.aspx")))
+            {
+                ERPResponseGeneral unbindResponse = ChangeUserIDResponse(null, ParameterDictionary, user, client, "Logout");
+                if (unbindResponse != null && "1".Equals(unbindResponse.statusCode))
+                {
+                    return unbindResponse;
+                }
+                return null;
             }
         }
 
@@ -169,8 +228,17 @@ namespace BBYingyongbao.Controllers
         {
             try
             {
-                string password = MD5Encriptor.Encriptor(user.Password);
-                param["WhereStr"] = param["WhereStr"].Replace("${Username}", user.Username.Trim()).Replace("${Password}", password);
+                string password = "";
+
+                if (!string.IsNullOrEmpty(user.Password))
+                {
+                    password = MD5Encriptor.Encriptor(user.Password);
+                }
+
+                param["WhereStr"] = param["WhereStr"].Replace("${Username}", string.IsNullOrEmpty(user.Username) ? "" : user.Username.Trim())
+                                                     .Replace("${Password}", password)
+                                                     .Replace("${ERPUserId}", string.IsNullOrEmpty(user.ERPUserId) ? "" : user.ERPUserId.Trim());
+
                 param["rand"] = DateTime.Now.ToString("f");
             }
             catch (Exception ex)
@@ -276,7 +344,7 @@ namespace BBYingyongbao.Controllers
             }
         }
 
-        private UserInfoViewModel GetUserByUserIdAndPassword(DDUserModel user, JObject ParameterDictionary)
+        private UserInfoViewModel GetUserByCondition(DDUserModel user, JObject ParameterDictionary)
         {
             using (HttpClient client = HttpClientHelper.GetClient(new Uri("http://erptest.bb-pco.com/KPIGetData/DimData.aspx")))
             {

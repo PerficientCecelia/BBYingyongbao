@@ -8,5 +8,13 @@
     "ReturnType": "Json",
     "WhereStr": "IfDel=0 and IfLeaf=1 and Support14='${OldDDUserId}'",
     "rand": ""
+  },
+  "IfExistUser": {
+    "SearchInput": "getmanyvalue",
+    "TargetTable": "OLAPAgentDim",
+    "TargetColumn": "OLAPKey,Support14",
+    "ReturnType": "Json",
+    "WhereStr": "IfDel=0 and IfLeaf=1 and OLAPKey=${ERPUserId}",
+    "rand": ""
   }
 }

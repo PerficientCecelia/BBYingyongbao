@@ -18,13 +18,13 @@ namespace BBYingyongbao.Models
         public string returnStyle { get; set; }
 
         public void ToUserInfoViewModel(UserInfoViewModel model,JToken obj) {
-            model.ERPUserID = obj["OLAPKey"].ToString();
-            model.DDUserID = obj["Support14"].ToString();
-            model.ERPUserName = obj["MainDemoName"].ToString();
-            model.WorkNumber = obj["SourceKey"].ToString();
-            model.DepartmentId = obj["FatherKey"].ToString();
-            model.DepartmentName = obj["FatherKeyValue"].ToString();
-            model.IfClosed = obj["IfCloseKey"].ToString();  
+            model.ERPUserID = obj["OLAPKey"]!=null?  obj["OLAPKey"].ToString():"";
+            model.DDUserID = obj["Support14"]!=null?obj["Support14"].ToString():"";
+            model.ERPUserName = obj["MainDemoName"]!=null? obj["MainDemoName"].ToString():"";
+            model.WorkNumber = obj["SourceKey"]!=null? obj["SourceKey"].ToString():"";
+            model.DepartmentId = obj["FatherKey"]!=null? obj["FatherKey"].ToString():"";
+            model.DepartmentName = obj["FatherKeyValue"]!=null? obj["FatherKeyValue"].ToString():"";
+            model.IfClosed = obj["IfCloseKey"]!=null? obj["IfCloseKey"].ToString():"";  
         }
     }
 }
