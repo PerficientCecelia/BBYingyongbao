@@ -16,6 +16,14 @@
     "WhereStr": "IfDel=0 and IfLeaf=1 and MainDemoName='${Username}' and PassKey='${Password}'",
     "rand": ""
   },
+  "ifExistDDIdUser": {
+    "SearchInput": "getmanyvalue",
+    "TargetTable": "OLAPAgentDim",
+    "TargetColumn": "OLAPKey,Support14",
+    "ReturnType": "Json",
+    "WhereStr": "IfDel=0 and IfLeaf=1 and Support14='${DDUserId}'",
+    "rand": ""
+  },
   "ClearDDId": {
     "SavingTarget": "savemanyvalue",
     "TargetTable": "OLAPAgentDim",

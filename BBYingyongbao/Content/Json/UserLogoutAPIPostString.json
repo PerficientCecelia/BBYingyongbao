@@ -6,7 +6,7 @@
     "MainID": "OLAPKey",
     "TableID": "",
     "ReturnType": "Json",
-    "WhereStr": "IfDel=0 and IfLeaf=1 and Support14='${OldDDUserId}'",
+    "WhereStr": "IfDel=0 and IfLeaf=1",
     "rand": ""
   },
   "IfExistUser": {
