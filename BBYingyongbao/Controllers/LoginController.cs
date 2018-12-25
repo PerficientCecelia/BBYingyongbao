@@ -174,7 +174,7 @@ namespace BBYingyongbao.Controllers
             try
             {
                 list["TableID"] = ChangedDDUserId;
-                list["rand"] = DateTime.Now.ToString("f");
+                list["rand"] = DateTime.Now.ToString("u");
                 list.Add("Support14", "");
             }
             catch (Exception ex)
@@ -203,7 +203,7 @@ namespace BBYingyongbao.Controllers
             try
             {
                 list["TableID"] = ERPUserId;
-                list["rand"] = DateTime.Now.ToString("f");
+                list["rand"] = DateTime.Now.ToString("u");
                 list.Add("Support14", ChangedDDUserId);
             }
             catch (Exception ex)
@@ -219,7 +219,7 @@ namespace BBYingyongbao.Controllers
             try
             {
                 list["UserID"] = userId;
-                list["rand"] = DateTime.Now.ToString("f");
+                list["rand"] = DateTime.Now.ToString("u");
                 list["WhereStr"] = list["WhereStr"].Replace("${DDUserId}", userId);
             }
             catch (Exception ex)
@@ -245,7 +245,7 @@ namespace BBYingyongbao.Controllers
                                                      .Replace("${Password}", password)
                                                      .Replace("${ERPUserId}", string.IsNullOrEmpty(user.ERPUserId) ? "" : user.ERPUserId.Trim())
                                                      .Replace("${DDUserId}", string.IsNullOrEmpty(user.DDUserId)?"":user.DDUserId.Trim());
-                param["rand"] = DateTime.Now.ToString("f");
+                param["rand"] = DateTime.Now.ToString("u");
             }
             catch (Exception ex)
             {
@@ -261,7 +261,7 @@ namespace BBYingyongbao.Controllers
             try
             {
                 list["TableID"] = ERPUserId;
-                list["rand"] = DateTime.Now.ToString("f");
+                list["rand"] = DateTime.Now.ToString("u");
                 list.Add("Support14", "");
             }
             catch (Exception ex)

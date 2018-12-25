@@ -1,0 +1,10 @@
+{
+  "GetOrders": {
+    "SearchInput": "getmanyvalue",
+    "TargetTable": "GDJH_OaMainFactBill",
+    "TargetColumn": "Name6,flowfullordernum,Name5,Chose3KeyValue,Name1,UsertimeEnd13,UserTimeFrom14,usertimefrom20,usertimeend20,chose2key,Chose2KeyValue,script7,Support20,passed,Chose4Key,Chose4KeyValue,Chose5Key,Chose5KeyValue,GenerateTime",
+    "ReturnType": "Json",
+    "WhereStr": "Passed=0 and Chose2Key=${ERPUserId} and UserTimeEnd13>=CAST('${TimeFrom}' AS DATETIME) and UserTimeFrom14<=CAST('${TimeTo}' AS DATETIME)",
+    "rand": ""
+  }
+}
