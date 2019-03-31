@@ -13,7 +13,7 @@
     "TargetTable": "OLAPAgentDim",
     "TargetColumn": "OLAPKey,Support14,MainDemoName,SourceKey,FatherKey,FatherKeyValue,PassKey,IfCloseKey,Chose2Key,Chose2KeyValue",
     "ReturnType": "Json",
-    "WhereStr": "IfDel=0 and IfLeaf=1 and MainDemoName='${Username}' and PassKey='${Password}'",
+    "WhereStr": "IfDel=0 and IfLeaf=1 and MainDemoName='${Username}'",
     "rand": ""
   },
   "ifExistDDIdUser": {

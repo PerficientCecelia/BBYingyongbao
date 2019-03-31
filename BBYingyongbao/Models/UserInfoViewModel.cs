@@ -16,6 +16,7 @@ namespace BBYingyongbao.Models
         public string DepartmentName { get; set; }
         public string IfClosed { get; set; }
         public string returnStyle { get; set; }
+        public string Password { get; set; }
 
         public void ToUserInfoViewModel(UserInfoViewModel model,JToken obj) {
             model.ERPUserID = obj["OLAPKey"]!=null?  obj["OLAPKey"].ToString():"";
@@ -24,7 +25,8 @@ namespace BBYingyongbao.Models
             model.WorkNumber = obj["SourceKey"]!=null? obj["SourceKey"].ToString():"";
             model.DepartmentId = obj["FatherKey"]!=null? obj["FatherKey"].ToString():"";
             model.DepartmentName = obj["FatherKeyValue"]!=null? obj["FatherKeyValue"].ToString():"";
-            model.IfClosed = obj["IfCloseKey"]!=null? obj["IfCloseKey"].ToString():"";  
+            model.IfClosed = obj["IfCloseKey"]!=null? obj["IfCloseKey"].ToString():"";
+            model.Password = obj["PassKey"] != null ? obj["PassKey"].ToString() : "";
         }
     }
 }

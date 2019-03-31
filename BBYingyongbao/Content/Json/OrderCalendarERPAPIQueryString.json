@@ -6,5 +6,13 @@
     "ReturnType": "Json",
     "WhereStr": "Passed=0 and Chose2Key=${ERPUserId} and UserTimeEnd13>=CAST('${TimeFrom}' AS DATETIME) and UserTimeFrom14<=CAST('${TimeTo}' AS DATETIME)",
     "rand": ""
+  },
+  "GetMainTableHeaders": {
+    "SearchInput": "getmanyvalue",
+    "TargetTable": "OAMainCubeDefination",
+    "TargetColumn": "SQLColumnName,DimDemoName,ControlNameStrValue,ShowOrder",
+    "ReturnType": "Json",
+    "WhereStr": "IFShow=1 and OASolutionKey=1341 and DimSolutionID=1",
+    "rand": ""
   }
 }
