@@ -1,4 +1,5 @@
 ﻿using BBYingyongbao.Common;
+using BBYingyongbao.Models;
 using log4net;
 using log4net.Config;
 using log4net.Repository;
@@ -31,8 +32,14 @@ namespace BBYingyongbao
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSession();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-           
+
+            // Add functionality to inject IOptions<T>
+            services.AddOptions();
+
+            // Add our Config object so it can be injected
+            services.Configure<ERPConfig>(Configuration.GetSection("ERPConfig"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,7 +53,7 @@ namespace BBYingyongbao
             {
                 app.UseHsts();
             }
-
+            app.UseSession();
             app.UseHttpsRedirection();
             app.UseMvc();
             LoggerHelper.LogInfo(this.GetType(),"Application StartUp");

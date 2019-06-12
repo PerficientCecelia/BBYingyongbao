@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using BBYingyongbao.Common;
 using BBYingyongbao.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -14,25 +18,124 @@ namespace BBYingyongbao.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
-        //[Route("test")]
-        //[HttpGet]
-        //public string test()
-        //{
-        //    string id = "{\"DDUserId\":\"101117491426576728\",\"Username\":\"系统配置\",\"Password\":\"123156\",\"ERPUserId\":\"\"}";
-        //    var result = Login(id);
-        //    string a = result.ToString();
-        //    return a;
-        //}
+        [Route("test")]
+        [HttpGet]
+        public string test()
+        {
+             string jsCode = "021nmcA91CpjbP1snWx91ZH3A91nmcAv";
+             var info = GetWeixinAuthMessage(jsCode);
+            return info.ToString();
+            //var sessionKey = "ewie6bQXi7nEyBv0NEjNqQ==";
 
-        public static string DimDataLink = "https://erp.bb-pco.com/KPIGetData/DimData.aspx";
-        public static string DimSavingDataLink = "https://erp.bb-pco.com/KPIGetData/DimSavingData.aspx";
+            //return HttpContext.Session.GetString("oQFXr4hJDdEKvHXCvx7Jq2P3SvbY");
+
+            //string openId = "oQFXr4hJDdEKvHXCvx7Jq2P3SvbY";
+            //string encryptedDataPlain = "cQvCLobn7yYtxKzBAPHU+a5tJyiAW960DrM4X2TjN63xTc3v89cH5818egOOLYmC6MwVOqUY5hkucEh3TyNBVVN1hBw2+lg/yL5Me+O57I7B2C8RCc9mXp3Vkag0jIHXIdmA3j3i23uTDagn66TJtC9+/ERuPAG4r/JrxVdF0BnNMOxE7qtd7VK9bY6O3feoayQHr8s4nqXYFP53Ql+JIM48M0aZkhD4iwZrkyQVpxMO+mi63FZZ6lQd+7mcE/i/8fewvcEUaFEioESaoRsDlGyYsy+8IyAo7OHBEMYD8sMw9niEjZhLHe9Y6PoGyCI8S6oEGEbRQIQ5/IJyo969T7fWe++dVXYj6y7Lu9vBxt/TbmSj8rQinObJLmeY2LsNCFI4U/7Srb0LSVg3ZGHHxhbPYUdwaq5ku22qHyTcePjdZTbFbCt7/EWv5ptxT/oY";
+            //string iv = "u+IPke+FkEYopqBF+4kimQ==";
+            //var info = DecodeInfo(new DecodeInfoModel() { encryptedDataPlain = encryptedDataPlain, iv = iv, openId = openId });
+            //return JsonConvert.SerializeObject(info);
+           // var erp = config.Value.DimDataLink;
+            //return config.Value.ToString();
+        }
+
+        [Route("test1")]
+        [HttpGet]
+        public string test1()
+        {
+            HttpContext.Session.SetString("oQFXr4hJDdEKvHXCvx7Jq2P3SvbY", "nMdIEY2lniYi0/WQZZ0Tdw==");
+            return "test success";
+        }
+        private readonly IOptions<ERPConfig> config;
+
+        public LoginController(IOptions<ERPConfig> config)
+        {
+            this.config = config;
+            DimDataLink = config.Value.DimDataLink;
+            DimSavingDataLink = config.Value.DimSavingDataLink;
+            weixinSecret = config.Value.weixinSecret;
+            weixinAppID = config.Value.weixinAppID;
+            appkey = config.Value.ddappkey;
+            appSecret = config.Value.ddappSecret;
+        }
+
+        public string DimDataLink;
+        public string DimSavingDataLink;
+        public static string Code2SessionUrl = "https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&js_code={2}&grant_type=authorization_code";
+        public static string Code2SessionBaseUrl = "https://api.weixin.qq.com/sns/jscode2session";
+        public string weixinSecret;
+        public string weixinAppID;
+        public string appkey;
+        public string appSecret;
+
+        [HttpGet]
+        [Route("GetWeixinAuthMessage")]
+        public JSendResponse<WeiXinUserInfo> GetWeixinAuthMessage(string jsCode)
+        {
+            var getCode2SessionUrl = string.Format(Code2SessionUrl, weixinAppID, weixinSecret, jsCode);
+            var openid = "";
+            var session_key = "";
+            var unionid = "";
+            StringBuilder errorMessage = new StringBuilder();
+            using (var client = HttpClientHelper.GetClient(new Uri(Code2SessionBaseUrl)))
+            {
+                HttpResponseMessage response = client.GetAsync(getCode2SessionUrl).Result;
+                string resultString = response.Content.ReadAsStringAsync().Result;
+                JObject resultObj = JObject.Parse(resultString);
+                var status = resultObj["errcode"];
+                if (status != null)
+                {
+                    errorMessage.Append(resultString);
+                    WeiXinUserInfo info = new WeiXinUserInfo().Convert("", "", "", errorMessage.ToString());
+                    return JSendResponse<WeiXinUserInfo>.CreateFail(info);
+                }
+                else
+                {
+                    session_key = resultObj["session_key"].ToString();
+                    openid = resultObj["openid"].ToString();
+                    unionid = resultObj["unionid"] == null ? "" : resultObj["unionid"].ToString();
+                    HttpContext.Session.SetString(openid, session_key);
+                    WeiXinUserInfo info = new WeiXinUserInfo().Convert(unionid, openid, session_key, errorMessage.ToString());
+                    return JSendResponse<WeiXinUserInfo>.CreateSuccess(info);
+                }
+            }
+        }
+
+        [HttpPost]
+        [Route("DecodeInfo")]
+        public object DecodeInfo(DecodeInfoModel info)
+        {
+            string session_key;
+            try
+            {
+                session_key = HttpContext.Session.GetString(info.openId);
+                if (string.IsNullOrEmpty(session_key))
+                {
+                    throw new Exception("Session Value can not be null");
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = "error message: " + ex.Message + "exception happened when you are getting the session key, encryptedDataPlain: " + info.encryptedDataPlain + " iv:" + info.iv + " openId:" + info.openId;
+                LoggerHelper.ErrorInfo(this.GetType(), message);
+                return message;
+            }
+            try
+            {
+                string result = WeixinAESEncryptor.AESDecriptor(info.encryptedDataPlain, info.iv, session_key);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                string message = "error message: " + ex.Message + "encryptedDataPlain: " + info.encryptedDataPlain + " iv:" + info.iv + " openId:" + info.openId;
+                LoggerHelper.ErrorInfo(this.GetType(), message);
+                return ex;
+            }
+        }
 
         [HttpGet]
         [Route("ddid")]
         public JSendResponse<object> GetDDUserId(string authCode)
         {
-            var appkey = "dingdajn17seowhnh0iw";
-            var appSecret = "q8KjRIRJTBYzDcvbu5tbdLIjMKTp6wczXzo3ZwyZ0D7wOwhrLvF6tZtM_9ixSwJf";
             var Access_tokenUrl = "https://oapi.dingtalk.com/gettoken?appkey=" + appkey + "&appsecret=" + appSecret;
             using (HttpClient client = HttpClientHelper.GetClient(new Uri("https://oapi.dingtalk.com")))
             {
@@ -103,7 +206,7 @@ namespace BBYingyongbao.Controllers
 
                 var ParameterDictionary = JsonFileReader.ReadTOJson("Content/Json/UserLoginERPAPIPostString.json");
                 List<UserInfoViewModel> userModelList = GetUserByCondition(user, ParameterDictionary, "IfExistUser");
-                
+
 
                 UserInfoViewModel userModel = IfUserExistWithSpecificPassword(userModelList, user.Password);
 
